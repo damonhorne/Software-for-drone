@@ -14,20 +14,28 @@ while(1):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # lower boundary RED color range values; Hue (0 - 10)
-    lower1 = np.array([0, 100, 20])
-    upper1 = np.array([10, 255, 255])
+    lower_red_1 = np.array([0, 120, 70])
+    upper_red_1 = np.array([10, 255, 255])
  
     # upper boundary RED color range values; Hue (160 - 180)
-    lower2 = np.array([160,100,20])
-    upper2 = np.array([179,255,255])
- 
-    lower_mask = cv2.inRange(hsv, lower1, upper1)
-    upper_mask = cv2.inRange(hsv, lower2, upper2)
- 
-    mask = lower_mask + upper_mask
+    lower_red_2 = np.array([170,120,70])
+    upper_red_2 = np.array([180,255,255])
+    
+    # combining red masks
+    red_lower_mask = cv2.inRange(hsv, lower_red_1, upper_red_1)
+    red_upper_mask = cv2.inRange(hsv, lower_red_2, upper_red_2)
+    mask_red = red_lower_mask + red_upper_mask
+
+    # boundary YELLOW color range values; Hue (20 - 30)
+    yellow_lower = np.array([20, 100, 100])
+    yellow_upper = np.array([30, 255, 255])
+    mask_yellow = cv2.inRange(hsv, yellow_lower, yellow_upper)
+
+    # combining red and yellow masks
+    mask = mask_red + mask_yellow
    
     kernel = np.ones((30, 30), np.uint8)
-    kernel2 = np.ones((100, 100), np.uint8)
+    kernel2 = np.ones((150, 150), np.uint8)
     mask = cv2.erode(mask, kernel)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel2)
 
@@ -45,15 +53,13 @@ while(1):
         x = approx.ravel()[0]
         y = approx.ravel()[1]
 
-        if area > 800:
+        if area > 1000:
             cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
 
-            if len(approx) == 3:
-                cv2.putText(frame, "Triangle", (x, y), font, 1, (0, 0, 0))
-            elif len(approx) == 4:
-                cv2.putText(frame, "Rectangle", (x, y), font, 1, (0, 0, 0))
-            elif 6 < len(approx) < 20:
+            if 7 < len(approx) < 20:
                 cv2.putText(frame, "Anaphylaxis", (x, y), font, 1, (0, 0, 0))
+            elif len(approx) == 4:
+                cv2.putText(frame, "Haemorrhage", (x, y), font, 1, (0, 0, 0))
 
     cv2.imshow('frame',frame)
     cv2.imshow('mask',mask)
